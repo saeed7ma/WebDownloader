@@ -1,1 +1,42 @@
+# 1. نام وورکفلو: این نام در تب Actions نمایش داده می‌شود
+name: Download Any Website
 
+# 2. رویداد (Event): مشخص می‌کند چه زمانی وورکفلو اجرا شود
+on:
+  # اجرای دستی با یک دکمه در گیت‌هاب
+  workflow_dispatch:
+  # (اختیاری) اجرای برنامه‌ریزی شده هر روز ساعت 12:00 به وقت جهانی
+  # schedule:
+  #   - cron: '0 12 * * *'
+
+# 3. وظایف (Jobs): کار اصلی در این بخش تعریف می‌شود
+jobs:
+  # نام وظیفه (اختیاری است)
+  download-job:
+    # اجرای کار روی آخرین نسخه از ماشین مجازی اوبونتو
+    runs-on: ubuntu-latest
+
+    # مراحل (Steps): دستوراتی که یکی پس از دیگری اجرا می‌شوند
+    steps:
+      # مرحله 1: دریافت کدهای مخزن (برای ذخیره خروجی در آن)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # مرحله 2: نصب Node.js (چون AnyDownload با Node.js نوشته شده)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # مرحله 3: نصب ابزار AnyDownload از روی npm
+      - name: Install AnyDownload
+        run: npm install -g anydownload
+
+      # مرحله 4: نصب مرورگر Playwright (برای دیدن سایت‌های مدرن و سنگین)
+      - name: Install Playwright browser
+        run: npx playwright install
+
+      # مرحله 5: دانلود وب‌سایت مورد نظر!
+      - name: Download the website
+        # این خط فرمان اصلی است. آدرس https://example.com را با آدرس دلخواه خود عوض کنید.
+        run: anydownload https://help.autodesk.com/view/fusion360/ENU/courses/AP-C-FUNDAMENTALS-OF-MILLING --browser playwright --dynamic --recursive --output my-website-backup
