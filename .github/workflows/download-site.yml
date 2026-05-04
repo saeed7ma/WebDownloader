@@ -39,4 +39,4 @@ jobs:
       # مرحله 5: دانلود وب‌سایت مورد نظر!
       - name: Download the website
         # این خط فرمان اصلی است. آدرس https://example.com را با آدرس دلخواه خود عوض کنید.
-        run: anydownload https://help.autodesk.com/view/fusion360/ENU/courses/AP-C-FUNDAMENTALS-OF-MILLING --browser playwright --dynamic --recursive --output my-website-backup
+        run: anydownload https://klipit.in --browser playwright --dynamic --recursive --output my-website-backup
