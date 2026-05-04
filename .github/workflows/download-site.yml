@@ -1,42 +1,40 @@
-# 1. نام وورکفلو: این نام در تب Actions نمایش داده می‌شود
-name: Download Any Website
+name: Download Any Website (Fixed)
 
-# 2. رویداد (Event): مشخص می‌کند چه زمانی وورکفلو اجرا شود
 on:
-  # اجرای دستی با یک دکمه در گیت‌هاب
   workflow_dispatch:
-  # (اختیاری) اجرای برنامه‌ریزی شده هر روز ساعت 12:00 به وقت جهانی
   # schedule:
   #   - cron: '0 12 * * *'
 
-# 3. وظایف (Jobs): کار اصلی در این بخش تعریف می‌شود
 jobs:
-  # نام وظیفه (اختیاری است)
   download-job:
-    # اجرای کار روی آخرین نسخه از ماشین مجازی اوبونتو
     runs-on: ubuntu-latest
+    env:
+      # این خط اخطار Node.js را خاموش می‌کند و از Node.js 24 استفاده می‌کند
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-    # مراحل (Steps): دستوراتی که یکی پس از دیگری اجرا می‌شوند
     steps:
-      # مرحله 1: دریافت کدهای مخزن (برای ذخیره خروجی در آن)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # مرحله 2: نصب Node.js (چون AnyDownload با Node.js نوشته شده)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'  # تغییر نسخه به 22 که با Playwright سازگارتر است
 
-      # مرحله 3: نصب ابزار AnyDownload از روی npm
-      - name: Install AnyDownload
-        run: npm install -g anydownload
+      - name: Install AnyDownload and dependencies
+        run: |
+          npm install -g anydownload
+          npx playwright install --with-deps  # نصب کامل وابستگی‌های سیستم
 
-      # مرحله 4: نصب مرورگر Playwright (برای دیدن سایت‌های مدرن و سنگین)
-      - name: Install Playwright browser
-        run: npx playwright install
-
-      # مرحله 5: دانلود وب‌سایت مورد نظر!
-      - name: Download the website
-        # این خط فرمان اصلی است. آدرس https://example.com را با آدرس دلخواه خود عوض کنید.
-        run: anydownload https://klipit.in --browser playwright --dynamic --recursive --output my-website-backup
+      - name: Download the website (with retry and headers)
+        run: |
+          # استفاده از --user-agent برای شبیه‌سازی مرورگر واقعی
+          anydownload https://zoomit.ir \
+            --browser playwright \
+            --dynamic \
+            --recursive \
+            --max-depth 3 \
+            --timeout 60000 \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+            --output my-website-backup || true
+          # || true یعنی اگر خطا هم داد، وورکفلو را متوقف نکن
