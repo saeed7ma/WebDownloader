@@ -1,45 +1,42 @@
-name: Download Any Website (Fixed)
+name: Download Website with wget
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 12 * * *'
 
 jobs:
   download-job:
     runs-on: ubuntu-latest
     env:
-      # این خط اخطار Node.js را خاموش می‌کند و از Node.js 24 استفاده می‌کند
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'  # تغییر نسخه به 22 که با Playwright سازگارتر است
+      - name: Install httrack (alternative tool)
+        run: sudo apt-get update && sudo apt-get install -y httrack
 
-      - name: Install AnyDownload and dependencies
+      - name: Download website with httrack
         run: |
-          npm install -g anydownload || true
-          PKG_PATH=$(find /opt/hostedtoolcache/node -name "package.json" -path "*/anydownload/package.json" 2>/dev/null | head -1)
-          if [ -n "$PKG_PATH" ]; then
-            sed -i '1s/^\xEF\xBB\xBF//' "$PKG_PATH"
-            npm install -g puppeteer@latest
-          
-          npx playwright install --with-deps  # نصب کامل وابستگی‌های سیستم
-
-      - name: Download the website (with retry and headers)
-        run: |
-          # استفاده از --user-agent برای شبیه‌سازی مرورگر واقعی
-          anydownload https://zoomit.ir \
-            --browser playwright \
-            --dynamic \
-            --recursive \
-            --max-depth 3 \
-            --timeout 60000 \
+          httrack https://example.com -O ./my-website-backup \
+            --mirror \
+            --robots=0 \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-            --output my-website-backup || true
-          # || true یعنی اگر خطا هم داد، وورکفلو را متوقف نکن
+            --timeout=60 \
+            --max-rate=1000000
+          
+          # اگر httrack کار نکرد، از wget استفاده کن
+          if [ ! -d "./my-website-backup" ]; then
+            wget --mirror --convert-links --adjust-extension \
+                 --page-requisites --no-parent \
+                 --wait=2 --limit-rate=100k \
+                 --user-agent="Mozilla/5.0" \
+                 https://example.com
+            mkdir -p my-website-backup
+            cp -r example.com/* my-website-backup/ 2>/dev/null || true
+          fi
+
+      - name: List downloaded files
+        run: |
+          echo "## 📁 فایل‌های دانلود شده" >> $GITHUB_STEP_SUMMARY
+          ls -la my-website-backup/ >> $GITHUB_STEP_SUMMARY
