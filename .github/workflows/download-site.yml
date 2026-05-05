@@ -23,7 +23,12 @@ jobs:
 
       - name: Install AnyDownload and dependencies
         run: |
-          npm install -g anydownload
+          npm install -g anydownload || true
+          PKG_PATH=$(find /opt/hostedtoolcache/node -name "package.json" -path "*/anydownload/package.json" 2>/dev/null | head -1)
+          if [ -n "$PKG_PATH" ]; then
+            sed -i '1s/^\xEF\xBB\xBF//' "$PKG_PATH"
+            npm install -g puppeteer@latest
+          
           npx playwright install --with-deps  # نصب کامل وابستگی‌های سیستم
 
       - name: Download the website (with retry and headers)
