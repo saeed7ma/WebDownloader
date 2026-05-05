@@ -18,7 +18,7 @@ jobs:
 
       - name: Download website with httrack
         run: |
-          httrack https://example.com -O ./my-website-backup \
+          httrack https://zoomit.ir -O ./my-website-backup \
             --mirror \
             --robots=0 \
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
@@ -31,9 +31,9 @@ jobs:
                  --page-requisites --no-parent \
                  --wait=2 --limit-rate=100k \
                  --user-agent="Mozilla/5.0" \
-                 https://example.com
+                 https://zoomit.ir
             mkdir -p my-website-backup
-            cp -r example.com/* my-website-backup/ 2>/dev/null || true
+            cp -r zoomit.ir/* my-website-backup/ 2>/dev/null || true
           fi
 
       - name: List downloaded files
